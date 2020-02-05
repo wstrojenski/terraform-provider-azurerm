@@ -45,7 +45,7 @@ func TestApplicationInsightsID(t *testing.T) {
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/Components/Component1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/Components/",
 			Expected: nil,
 		},
 	}

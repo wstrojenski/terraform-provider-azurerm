@@ -17,11 +17,11 @@ func ApplicationInsightsAnalyticsItemID(input string) (*ApplicationInsightsAnaly
 		return nil, fmt.Errorf("[ERROR] Unable to parse Application Insights ID %q: %+v", input, err)
 	}
 
-	server := ApplicationInsightsAnalyticsItemId{
+	component := ApplicationInsightsAnalyticsItemId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if server.Name, err = id.PopSegment("components"); err != nil {
+	if component.Name, err = id.PopSegment("components"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +29,5 @@ func ApplicationInsightsAnalyticsItemID(input string) (*ApplicationInsightsAnaly
 		return nil, err
 	}
 
-	return &server, nil
+	return &component, nil
 }

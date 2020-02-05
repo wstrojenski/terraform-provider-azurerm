@@ -36,7 +36,7 @@ func TestApplicationInsightsID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:  "App Configuration ID",
+			Name:  "Application Insights ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/components/Component1",
 			Expected: &ApplicationInsightsId{
 				Name:          "Component1",
@@ -45,7 +45,7 @@ func TestApplicationInsightsID(t *testing.T) {
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/Components/Component1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/Components/",
 			Expected: nil,
 		},
 	}

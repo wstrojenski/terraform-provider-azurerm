@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func TestApplicationInsightsID(t *testing.T) {
+func TestApplicationInsightsWebtestsID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *ApplicationInsightsId
+		Expected *ApplicationInsightsWebtestsId
 	}{
 		{
 			Name:     "Empty",
@@ -31,21 +31,21 @@ func TestApplicationInsightsID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "Missing Components Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/components/",
+			Name:     "Missing Webtests Value",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/webtests/",
 			Expected: nil,
 		},
 		{
-			Name:  "App Configuration ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/components/Component1",
-			Expected: &ApplicationInsightsId{
-				Name:          "Component1",
+			Name:  "Application Insights WebTests ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/webtests/Webtest1",
+			Expected: &ApplicationInsightsWebtestsId{
+				Name:          "Webtest1",
 				ResourceGroup: "resGroup1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/Components/Component1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/Webtests/",
 			Expected: nil,
 		},
 	}
@@ -53,7 +53,7 @@ func TestApplicationInsightsID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ApplicationInsightsID(v.Input)
+		actual, err := ApplicationInsightsWebtestsID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

@@ -8,6 +8,7 @@ import (
 
 type ApplicationInsightsApiKeyId struct {
 	ResourceGroup string
+	KeyID					string
 	Name          string
 }
 
@@ -21,7 +22,11 @@ func ApplicationInsightsApiKeyID(input string) (*ApplicationInsightsApiKeyId, er
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if component.Name, err = id.PopSegment("components"); err != nil {
+	if component.KeyID, err = id.PopSegment("apikeys"); err != nil {
+		return nil, err
+	}
+	
+		if component.Name, err = id.PopSegment("components"); err != nil {
 		return nil, err
 	}
 

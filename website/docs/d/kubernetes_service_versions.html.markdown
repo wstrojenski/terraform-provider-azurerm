@@ -18,17 +18,17 @@ data "azurerm_kubernetes_service_versions" "current" {
 }
 
 output "versions" {
-  value = "${data.azurerm_kubernetes_service_versions.current.versions}"
+  value = data.azurerm_kubernetes_service_versions.current.versions
 }
 
 output "latest_version" {
-  value = "${data.azurerm_kubernetes_service_versions.current.latest_version}"
+  value = data.azurerm_kubernetes_service_versions.current.latest_version
 }
 ```
 
 ## Argument Reference
 
-* `location` - (Required) Specifies the location in which to query for versions.
+* `location` - Specifies the location in which to query for versions.
 
 * `version_prefix` - (Optional) A prefix filter for the versions of Kubernetes which should be returned; for example `1.` will return `1.9` to `1.14`, whereas `1.12` will return `1.12.2`.
 
@@ -37,3 +37,11 @@ output "latest_version" {
 * `versions` - The list of all supported versions.
 
 * `latest_version` - The most recent version available.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the versions.

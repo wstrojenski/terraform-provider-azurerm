@@ -19,15 +19,15 @@ data "azurerm_sql_server" "example" {
 }
 
 output "sql_server_id" {
-  value = "${data.azurerm_sql_server.example.id}"
+  value = data.azurerm_sql_server.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the SQL Server.
+* `name` - The name of the SQL Server.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the SQL Server exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the SQL Server exists.
 
 ## Attributes Reference
 
@@ -52,3 +52,11 @@ An `identity` block exports the following:
 * `tenant_id` - The ID of the Azure Active Directory Tenant.
 
 * `type` - The identity type of the SQL Server.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the SQL Azure Database Server.

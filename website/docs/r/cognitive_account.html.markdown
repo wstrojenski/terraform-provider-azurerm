@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_cognitive_account" "example" {
   name                = "example-account"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   kind                = "Face"
 
   sku_name = "S0"
@@ -60,6 +60,17 @@ The following attributes are exported:
 * `primary_access_key` - A primary access key which can be used to connect to the Cognitive Service Account.
 
 * `secondary_access_key` - The secondary access key which can be used to connect to the Cognitive Service Account.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Cognitive Service Account.
+* `update` - (Defaults to 30 minutes) Used when updating the Cognitive Service Account.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Service Account.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Cognitive Service Account.
 
 ## Import
 

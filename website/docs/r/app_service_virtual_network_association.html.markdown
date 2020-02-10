@@ -22,14 +22,14 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test1" {
   name                 = "acctestsubnet1"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 
   delegation {
@@ -44,8 +44,8 @@ resource "azurerm_subnet" "test1" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestasp"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -55,14 +55,14 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctestas"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id = "${azurerm_app_service.test.id}"
-  subnet_id      = "${azurerm_subnet.test1.id}"
+  app_service_id = azurerm_app_service.test.id
+  subnet_id      = azurerm_subnet.test1.id
 }
 ```
 
@@ -79,6 +79,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the App Service Virtual Network Association
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Virtual Network Association.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Virtual Network Association.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Virtual Network Association.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Virtual Network Association.
 
 ## Import
 

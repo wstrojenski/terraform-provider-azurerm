@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_lb_nat_rule
 
-Manages a Load Balancer NAT Rule. 
+Manages a Load Balancer NAT Rule.
 
 -> **NOTE:** This resource cannot be used with with virtual machine scale sets, instead use the `azurerm_lb_nat_pool` resource.
 
@@ -25,24 +25,24 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_public_ip" "example" {
   name                = "PublicIPForLB"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "example" {
   name                = "TestLoadBalancer"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
-    public_ip_address_id = "${azurerm_public_ip.example.id}"
+    public_ip_address_id = azurerm_public_ip.example.id
   }
 }
 
 resource "azurerm_lb_nat_rule" "example" {
-  resource_group_name            = "${azurerm_resource_group.example.name}"
-  loadbalancer_id                = "${azurerm_lb.example.id}"
+  resource_group_name            = azurerm_resource_group.example.name
+  loadbalancer_id                = azurerm_lb.example.id
   name                           = "RDPAccess"
   protocol                       = "Tcp"
   frontend_port                  = 3389
@@ -71,6 +71,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Load Balancer NAT Rule.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Load Balancer NAT Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Load Balancer NAT Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Load Balancer NAT Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Load Balancer NAT Rule.
 
 ## Import
 

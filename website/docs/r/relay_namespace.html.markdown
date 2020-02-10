@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_relay_namespace" "example" {
   name                = "example-relay"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku_name = "Standard"
 
@@ -71,6 +71,17 @@ The following attributes are exported only if there is an authorization rule nam
 * `secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
 
 * `metric_id` - The Identifier for Azure Insights metrics.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Relay Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the Relay Namespace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Relay Namespace.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Relay Namespace.
 
 ## Import
 

@@ -28,11 +28,11 @@ output "dedicated_host_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Dedicated Host.
+* `name` - Specifies the name of the Dedicated Host.
 
-* `dedicated_host_group_name` - (Required) Specifies the name of the Dedicated Host Group the Dedicated Host is located in.
+* `dedicated_host_group_name` - Specifies the name of the Dedicated Host Group the Dedicated Host is located in.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group the Dedicated Host is located in.
+* `resource_group_name` - Specifies the name of the resource group the Dedicated Host is located in.
 
 ## Attributes Reference
 
@@ -44,3 +44,11 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags assigned to the Dedicated Host.
 
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dedicated Host.

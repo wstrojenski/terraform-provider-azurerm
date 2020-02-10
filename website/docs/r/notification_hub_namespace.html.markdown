@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_notification_hub_namespace" "example" {
   name                = "myappnamespace"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   namespace_type      = "NotificationHub"
 
   sku_name = "Free"
@@ -60,6 +60,17 @@ The following attributes are exported:
 * `id` - The ID of the Notification Hub Namespace.
 
 * `servicebus_endpoint` - The ServiceBus Endpoint for this Notification Hub Namespace.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Notification Hub Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the Notification Hub Namespace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Notification Hub Namespace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Notification Hub Namespace.
 
 ## Import
 

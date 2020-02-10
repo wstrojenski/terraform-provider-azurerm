@@ -21,10 +21,10 @@ data "azurerm_api_management_user" "example" {
 }
 
 resource "azurerm_api_management_group_user" "example" {
-  user_id             = "${data.azurerm_api_management_user.example.id}"
+  user_id             = data.azurerm_api_management_user.example.id
   group_name          = "example-group"
-  resource_group_name = "${data.azurerm_api_management_user.example.resource_group_name}"
-  api_management_name = "${data.azurerm_api_management_user.example.api_management_name}"
+  resource_group_name = data.azurerm_api_management_user.example.resource_group_name
+  api_management_name = data.azurerm_api_management_user.example.api_management_name
 }
 ```
 
@@ -46,6 +46,17 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Group User.
+
+### Timeouts
+
+~> **Note:** Custom Timeouts are available [as an opt-in Beta in version 1.43 of the Azure Provider](/docs/providers/azurerm/guides/2.0-beta.html) and will be enabled by default in version 2.0 of the Azure Provider.
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management Group User.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Group User.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Group User.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Group User.
 
 ## Import
 

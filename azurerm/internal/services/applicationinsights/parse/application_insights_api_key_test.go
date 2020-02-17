@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func TestApplicationInsightsID(t *testing.T) {
+func TestApplicationInsightsApiKeyID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *ApplicationInsightsId
+		Expected *ApplicationInsightsApiKeyId
 	}{
 		{
 			Name:     "Empty",
@@ -30,22 +30,32 @@ func TestApplicationInsightsID(t *testing.T) {
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
 			Expected: nil,
 		},
-		{
-			Name:     "Missing Components Value",
+		{Name: "Missing Components Value",
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/components/",
 			Expected: nil,
 		},
 		{
-			Name:  "App Configuration ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/components/Component1",
-			Expected: &ApplicationInsightsId{
-				Name:          "Component1",
+			Name:     "Application Insights ID",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/components/component1",
+			Expected: nil,
+		},
+		{
+			Name:     "Missing API Key Value",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/components/component1/apikeys/",
+			Expected: nil,
+		},
+		{
+			Name:  "App Insights API Key ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/components/component1/apikeys/key1",
+			Expected: &ApplicationInsightsApiKeyId{
 				ResourceGroup: "resGroup1",
+				Name:          "component1",
+				KeyID:         "key1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/Components/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/components/component1/Apikeys/key1",
 			Expected: nil,
 		},
 	}
@@ -53,7 +63,7 @@ func TestApplicationInsightsID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ApplicationInsightsID(v.Input)
+		actual, err := ApplicationInsightsApiKeyID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -62,12 +72,15 @@ func TestApplicationInsightsID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
-		}
-
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		}
+		if actual.KeyID != v.Expected.KeyID {
+			t.Fatalf("Expected %q but got %q for API Key ID", v.Expected.KeyID, actual.KeyID)
+		}
+
 	}
 }

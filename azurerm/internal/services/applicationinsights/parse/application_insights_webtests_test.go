@@ -37,15 +37,15 @@ func TestApplicationInsightsWebtestsID(t *testing.T) {
 		},
 		{
 			Name:  "Application Insights WebTests ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/webtests/Webtest1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/webtests/webtest1",
 			Expected: &ApplicationInsightsWebtestsId{
-				Name:          "Webtest1",
+				Name:          "webtest1",
 				ResourceGroup: "resGroup1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/Webtests/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Insights/Webtests/webtest1",
 			Expected: nil,
 		},
 	}

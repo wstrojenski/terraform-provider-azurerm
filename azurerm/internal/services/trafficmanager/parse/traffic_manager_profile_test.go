@@ -32,20 +32,20 @@ func TestTrafficManagerProfileId(t *testing.T) {
 		},
 		{
 			Name:     "Missing Traffic Manager Profiles Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/trafficmanagerprofiles/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/trafficManagerProfiles/",
 			Expected: nil,
 		},
 		{
 			Name:  "Traffic Manager Profile ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/trafficmanagerprofiles/Profile1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/trafficManagerProfiles/profile1",
 			Expected: &TrafficManagerProfileId{
-				Name:          "Profile1",
+				Name:          "profile1",
 				ResourceGroup: "resGroup1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/Trafficmanagerprofiles/Profile1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/TrafficManagerProfiles/profile1",
 			Expected: nil,
 		},
 	}

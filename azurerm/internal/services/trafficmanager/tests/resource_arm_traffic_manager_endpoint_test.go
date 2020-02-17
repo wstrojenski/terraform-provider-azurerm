@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/parse"
 )
 
 func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
@@ -340,22 +341,19 @@ func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		endpointType := rs.Primary.Attributes["type"]
-		profileName := rs.Primary.Attributes["profile_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Traffic Manager Profile: %s", name)
+		id, err := parse.TrafficManagerEndpointID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ProfileName, path.Base(id.EndpointType), id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on trafficManagerEndpointsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Traffic Manager Endpoint %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Traffic Manager Endpoint %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -399,11 +397,12 @@ func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		endpointType := rs.Primary.Attributes["type"]
-		profileName := rs.Primary.Attributes["profile_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
+		id, err := parse.TrafficManagerEndpointID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ProfileName, path.Base(id.EndpointType), id.Name)
 		if err != nil {
 			return nil
 		}

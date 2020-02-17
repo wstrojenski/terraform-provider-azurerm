@@ -3,7 +3,6 @@ package trafficmanager
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
@@ -15,6 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,9 +26,6 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 		Read:   resourceArmTrafficManagerEndpointRead,
 		Update: resourceArmTrafficManagerEndpointCreateUpdate,
 		Delete: resourceArmTrafficManagerEndpointDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -36,6 +34,10 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.TrafficManagerEndpointID(id)
+			return err
+		}),
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -228,36 +230,33 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TrafficManagerEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
 
 	// lookup endpointType in Azure ID path
-	var endpointType string
-	typeRegex := regexp.MustCompile("azureEndpoints|externalEndpoints|nestedEndpoints")
-	for k := range id.Path {
-		if typeRegex.MatchString(k) {
-			endpointType = k
-		}
-	}
-	profileName := id.Path["trafficManagerProfiles"]
-	name := id.Path[endpointType]
+	// var endpointType string
+	// typeRegex := regexp.MustCompile("azureEndpoints|externalEndpoints|nestedEndpoints")
+	// for k := range id.Path {
+	// 	if typeRegex.MatchString(k) {
+	// 		endpointType = k
+	// 	}
+	// }
 
-	resp, err := client.Get(ctx, resGroup, profileName, endpointType, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointType, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on TrafficManager Endpoint %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error making Read request on TrafficManager Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("resource_group_name", resGroup)
-	d.Set("name", resp.Name)
-	d.Set("type", endpointType)
-	d.Set("profile_name", profileName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.Name)
+	d.Set("type", id.EndpointType)
+	d.Set("profile_name", id.ProfileName)
 
 	if props := resp.EndpointProperties; props != nil {
 		d.Set("endpoint_status", string(props.EndpointStatus))
@@ -323,17 +322,15 @@ func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TrafficManagerEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	endpointType := d.Get("type").(string)
-	profileName := id.Path["trafficManagerProfiles"]
+	// endpointType := d.Get("type").(string)
 
 	// endpoint name is keyed by endpoint type in ARM ID
-	name := id.Path[endpointType]
-	resp, err := client.Delete(ctx, resGroup, profileName, endpointType, name)
+	// name := id.Path[endpointType]
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.EndpointType, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil

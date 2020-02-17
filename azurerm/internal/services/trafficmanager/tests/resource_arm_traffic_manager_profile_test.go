@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/parse"
 )
 
 func TestAccAzureRMTrafficManagerProfile_basic(t *testing.T) {
@@ -188,20 +189,19 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Traffic Manager Profile: %s", name)
+		id, err := parse.TrafficManagerProfileID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on trafficManagerProfilesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Traffic Manager %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Traffic Manager %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -219,9 +219,11 @@ func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 
 		log.Printf("[TRACE] test_profile %#v", rs)
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		id, err := parse.TrafficManagerProfileID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return nil
 		}

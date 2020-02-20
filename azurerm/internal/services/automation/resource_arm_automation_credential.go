@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,16 +24,17 @@ func resourceArmAutomationCredential() *schema.Resource {
 		Update: resourceArmAutomationCredentialCreateUpdate,
 		Delete: resourceArmAutomationCredentialDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.AutomationCredentialID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -128,27 +131,24 @@ func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AutomationCredentialID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	accountName := id.Path["automationAccounts"]
-	name := id.Path["credentials"]
 
-	resp, err := client.Get(ctx, resGroup, accountName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Credential '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Automation Credential '%s': %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("automation_account_name", accountName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("automation_account_name", id.AccountName)
 	if props := resp.CredentialProperties; props != nil {
 		d.Set("username", props.UserName)
 	}
@@ -162,21 +162,18 @@ func resourceArmAutomationCredentialDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AutomationCredentialID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	accountName := id.Path["automationAccounts"]
-	name := id.Path["credentials"]
 
-	resp, err := client.Delete(ctx, resGroup, accountName, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Automation Credential '%s': %+v", name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for Automation Credential '%s': %+v", id.Name, err)
 	}
 
 	return nil

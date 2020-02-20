@@ -97,17 +97,13 @@ The following arguments are supported:
 * `enable_file_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for File storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
 
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
-    for more information.
+    for more information. Defaults to `true`.
 
 * `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
 
 * `account_encryption_source` - (Optional) The Encryption Source for this Storage Account. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`. Defaults to `Microsoft.Storage`.
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
-
-* `enable_advanced_threat_protection` (Optional) Boolean flag which controls if advanced threat protection is enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/common/storage-advanced-threat-protection) for more information. Defaults to `false`.
-
-~> **Note:** `enable_advanced_threat_protection` is not supported in all regions.
 
 * `identity` - (Optional) A `identity` block as defined below.
 
@@ -116,6 +112,10 @@ The following arguments are supported:
 * `queue_properties` - (Optional) A `queue_properties` block as defined below.
 
 ~> **NOTE:** `queue_properties` cannot be set when the `access_tier` is set to `BlobStorage`
+
+* `static_website` - (Optional) A `static_website` block as defined below.
+
+~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2`
 
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
@@ -230,6 +230,14 @@ A `queue_properties` block supports the following:
 * `minute_metrics` - (Optional) A `minute_metrics` block as defined below.
 
 * `hour_metrics` - (Optional) A `hour_metrics` block as defined below.
+
+---
+
+A `static_website` block supports the following:
+
+* `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder. For example, index.html. The value is case-sensitive.
+
+* `error_404_document` - (Optional) The absolute path to a custom webpage that should be used when a request is made which does not correspond to an existing file.
 
 ## Attributes Reference
 

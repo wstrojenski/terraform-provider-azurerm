@@ -1,4 +1,4 @@
-package tests
+package analysisservices_test
 
 import (
 	"fmt"

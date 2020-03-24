@@ -3,7 +3,6 @@ package analysisservices
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
@@ -11,11 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/p"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -45,7 +45,7 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAnalysisServicesServerName,
+				ValidateFunc: validate.AnalysisServicesServerName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -91,12 +91,12 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 						"range_start": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 						"range_end": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.IPv4Address,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 					},
 				},
@@ -106,7 +106,7 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateQuerypoolConnectionMode(),
+				ValidateFunc: validate.QuerypoolConnectionMode(),
 			},
 
 			"backup_blob_container_uri": {
@@ -149,37 +149,32 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	sku := d.Get("sku").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-
-	serverProperties := expandAnalysisServicesServerProperties(d)
-
-	t := d.Get("tags").(map[string]interface{})
-
 	analysisServicesServer := analysisservices.Server{
-		Name:             &name,
-		Location:         &location,
-		Sku:              &analysisservices.ResourceSku{Name: &sku},
-		ServerProperties: serverProperties,
-		Tags:             tags.Expand(t),
+		Name:     &name,
+		Location: azure.NormalizeLocationP(d.Get("location")),
+		Sku: &analysisservices.ResourceSku{
+			Name: p.StringI(d.Get("sku")),
+		},
+		ServerProperties: expandAnalysisServicesServerProperties(d),
+		Tags:             tags.ExpandI(d.Get("tags")),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, analysisServicesServer)
 	if err != nil {
-		return fmt.Errorf("Error creating Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, getDetailsErr := client.GetDetails(ctx, resourceGroup, name)
 	if getDetailsErr != nil {
-		return fmt.Errorf("Error retrieving Analytics Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Analytics Services Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Analytics Services Server %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("cannot read ID for Analytics Services Server %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -253,14 +248,12 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	serverProperties := expandAnalysisServicesServerMutableProperties(d)
-	sku := d.Get("sku").(string)
-	t := d.Get("tags").(map[string]interface{})
-
 	analysisServicesServer := analysisservices.ServerUpdateParameters{
-		Sku:                     &analysisservices.ResourceSku{Name: &sku},
-		Tags:                    tags.Expand(t),
-		ServerMutableProperties: serverProperties,
+		ServerMutableProperties: expandAnalysisServicesServerMutableProperties(d),
+		Sku: &analysisservices.ResourceSku{
+			Name: p.StringI(d.Get("sku")),
+		},
+		Tags: tags.ExpandI(d.Get("tags")),
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, analysisServicesServer)
@@ -297,31 +290,13 @@ func resourceArmAnalysisServicesServerDelete(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func validateAnalysisServicesServerName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^[a-z][0-9a-z]{2,62}$`).Match([]byte(value)) {
-		errors = append(errors, fmt.Errorf("%q must begin with a letter, be lowercase alphanumeric, and be between 3 and 63 characters in length", k))
-	}
-
-	return warnings, errors
-}
-
-func validateQuerypoolConnectionMode() schema.SchemaValidateFunc {
-	connectionModes := make([]string, len(analysisservices.PossibleConnectionModeValues()))
-	for i, v := range analysisservices.PossibleConnectionModeValues() {
-		connectionModes[i] = string(v)
-	}
-
-	return validation.StringInSlice(connectionModes, true)
-}
-
 func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisservices.ServerProperties {
 	adminUsers := expandAnalysisServicesServerAdminUsers(d)
 
-	serverProperties := analysisservices.ServerProperties{AsAdministrators: adminUsers}
-
-	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
+	serverProperties := analysisservices.ServerProperties{
+		AsAdministrators:     adminUsers,
+		IPV4FirewallSettings: expandAnalysisServicesServerFirewallSettings(d),
+	}
 
 	if querypoolConnectionMode, ok := d.GetOk("querypool_connection_mode"); ok {
 		serverProperties.QuerypoolConnectionMode = analysisservices.ConnectionMode(querypoolConnectionMode.(string))
@@ -337,11 +312,11 @@ func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisser
 func expandAnalysisServicesServerMutableProperties(d *schema.ResourceData) *analysisservices.ServerMutableProperties {
 	adminUsers := expandAnalysisServicesServerAdminUsers(d)
 
-	serverProperties := analysisservices.ServerMutableProperties{AsAdministrators: adminUsers}
-
-	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
-
-	serverProperties.QuerypoolConnectionMode = analysisservices.ConnectionMode(d.Get("querypool_connection_mode").(string))
+	serverProperties := analysisservices.ServerMutableProperties{
+		AsAdministrators:        adminUsers,
+		IPV4FirewallSettings:    expandAnalysisServicesServerFirewallSettings(d),
+		QuerypoolConnectionMode: analysisservices.ConnectionMode(d.Get("querypool_connection_mode").(string)),
+	}
 
 	if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
 		serverProperties.BackupBlobContainerURI = utils.String(containerUri.(string))
@@ -364,24 +339,22 @@ func expandAnalysisServicesServerAdminUsers(d *schema.ResourceData) *analysisser
 }
 
 func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analysisservices.IPv4FirewallSettings {
-	firewallSettings := analysisservices.IPv4FirewallSettings{
-		EnablePowerBIService: utils.Bool(d.Get("enable_power_bi_service").(bool)),
-	}
-
 	firewallRules := d.Get("ipv4_firewall_rule").(*schema.Set).List()
-
 	fwRules := make([]analysisservices.IPv4FirewallRule, len(firewallRules))
+
 	for i, v := range firewallRules {
 		fwRule := v.(map[string]interface{})
 		fwRules[i] = analysisservices.IPv4FirewallRule{
-			FirewallRuleName: utils.String(fwRule["name"].(string)),
-			RangeStart:       utils.String(fwRule["range_start"].(string)),
-			RangeEnd:         utils.String(fwRule["range_end"].(string)),
+			FirewallRuleName: p.StringI(fwRule["name"]),
+			RangeStart:       p.StringI(fwRule["range_start"]),
+			RangeEnd:         p.StringI(fwRule["range_end"]),
 		}
 	}
-	firewallSettings.FirewallRules = &fwRules
 
-	return &firewallSettings
+	return &analysisservices.IPv4FirewallSettings{
+		EnablePowerBIService: p.BoolI(d.Get("enable_power_bi_service")),
+		FirewallRules:        &fwRules,
+	}
 }
 
 func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisservices.ServerProperties) (enablePowerBi *bool, fwRules []interface{}) {
@@ -400,17 +373,10 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisser
 	if firewallSettings.FirewallRules != nil {
 		for _, fwRule := range *firewallSettings.FirewallRules {
 			output := make(map[string]interface{})
-			if fwRule.FirewallRuleName != nil {
-				output["name"] = *fwRule.FirewallRuleName
-			}
 
-			if fwRule.RangeStart != nil {
-				output["range_start"] = *fwRule.RangeStart
-			}
-
-			if fwRule.RangeEnd != nil {
-				output["range_end"] = *fwRule.RangeEnd
-			}
+			output["name"] = p.StrOrEmpty(fwRule.FirewallRuleName)
+			output["range_start"] = p.StrOrEmpty(fwRule.RangeStart)
+			output["range_end"] = p.StrOrEmpty(fwRule.RangeEnd)
 
 			fwRules = append(fwRules, output)
 		}

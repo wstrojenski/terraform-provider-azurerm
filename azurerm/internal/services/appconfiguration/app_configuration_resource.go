@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/p"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -195,11 +196,11 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	parameters := appconfiguration.ConfigurationStore{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: azure.NormalizeLocationP(d.Get("location")),
 		Sku: &appconfiguration.Sku{
-			Name: utils.String(d.Get("sku").(string)),
+			Name: p.StringI(d.Get("sku")),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.ExpandI(d.Get("tags")),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
@@ -387,27 +388,11 @@ func flattenAppConfigurationAccessKeys(values []appconfiguration.APIKey) flatten
 }
 
 func flattenAppConfigurationAccessKey(input appconfiguration.APIKey) []interface{} {
-	connectionString := ""
-
-	if input.ConnectionString != nil {
-		connectionString = *input.ConnectionString
-	}
-
-	id := ""
-	if input.ID != nil {
-		id = *input.ID
-	}
-
-	secret := ""
-	if input.Value != nil {
-		secret = *input.Value
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"connection_string": connectionString,
-			"id":                id,
-			"secret":            secret,
+			"connection_string": p.StrOrEmpty(input.ConnectionString),
+			"id":                p.StrOrEmpty(input.ID),
+			"secret":            p.StrOrEmpty(input.Value),
 		},
 	}
 }

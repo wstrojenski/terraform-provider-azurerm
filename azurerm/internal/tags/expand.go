@@ -11,3 +11,7 @@ func Expand(tagsMap map[string]interface{}) map[string]*string {
 
 	return output
 }
+
+func ExpandI(tagsMap interface{}) map[string]*string {
+	return Expand(tagsMap.(map[string]interface{}))
+}

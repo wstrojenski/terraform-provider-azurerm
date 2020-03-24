@@ -160,7 +160,7 @@ func dataSourceAppConfigurationRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error retrieving App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resultPage, err := client.ListKeys(ctx, resourceGroup, name, "")
+	keysResp, err := client.ListKeys(ctx, resourceGroup, name, "")
 	if err != nil {
 		return fmt.Errorf("Failed to receive access keys for App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -181,7 +181,7 @@ func dataSourceAppConfigurationRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("endpoint", props.Endpoint)
 	}
 
-	accessKeys := flattenAppConfigurationAccessKeys(resultPage.Values())
+	accessKeys := flattenAppConfigurationAccessKeys(keysResp.Values())
 	d.Set("primary_read_key", accessKeys.primaryReadKey)
 	d.Set("primary_write_key", accessKeys.primaryWriteKey)
 	d.Set("secondary_read_key", accessKeys.secondaryReadKey)

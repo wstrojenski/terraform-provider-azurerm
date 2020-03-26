@@ -7,13 +7,18 @@ import (
 
 type Client struct {
 	CustomProviderClient *customproviders.CustomResourceProviderClient
+	AssociationClient    *customproviders.AssociationsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	CustomProviderClient := customproviders.NewCustomResourceProviderClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&CustomProviderClient.Client, o.ResourceManagerAuthorizer)
 
+	AssociationClient := customproviders.NewAssociationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AssociationClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		CustomProviderClient: &CustomProviderClient,
+		AssociationClient:    &AssociationClient,
 	}
 }
